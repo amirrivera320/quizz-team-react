@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Form, Input, message } from 'antd';
 import { redirect, useNavigate  } from 'react-router-dom';
+import Cookies from 'universal-cookie';
 
 const formItemLayout = {
   labelCol: { span: 24 },
@@ -14,6 +15,7 @@ const tailFormItemLayout = {
 function Login() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const cookies = new Cookies(); 
 
 
   
@@ -39,6 +41,8 @@ function Login() {
 
       // Aquí puedes manejar la respuesta del backend según tu lógica
       if (data.message === 'Login exitoso') {
+        cookies.set('usuario', values.usuario, { path: '/' }); // Guardar nombre de usuario en cookie
+
         //message.error('Correcto');
         navigate('/index'); // Redirige a la página de inicio después del login exitoso
 
