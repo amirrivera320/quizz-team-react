@@ -1,8 +1,7 @@
-import React from "react";
-import { Button, Form, Input, message } from "antd";
-import { redirect, useNavigate } from "react-router-dom";
-import Cookies from "universal-cookie";
-import { BACKEND_URL } from "../../global/config";
+import React from 'react';
+import { Button, Form, Input, message } from 'antd';
+import { redirect, useNavigate  } from 'react-router-dom';
+import Cookies from 'universal-cookie';
 
 const formItemLayout = {
   labelCol: { span: 24 },
@@ -16,50 +15,55 @@ const tailFormItemLayout = {
 function Login() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const cookies = new Cookies();
+  const cookies = new Cookies(); 
 
+
+  
   const onFinish = async (values) => {
     //console.log('Datos enviados al backend:', values);  // Verificar datos enviados
 
     try {
       // Envía los datos del formulario al backend
-      const response = await fetch(`${BACKEND_URL}login`, {
-        method: "POST",
-
+      const response = await fetch('http://localhost:8000/login', {
+        method: 'POST',
+       
         body: JSON.stringify(values),
       });
 
       if (!response.ok) {
-        throw new Error("Error en la solicitud");
+        throw new Error('Error en la solicitud');
       }
       //console.log('Datos enviados al backend:', values);  // Verificar datos enviados
 
       const data = await response.json();
-      console.log("Respuesta del backend:", data);
+      console.log('Respuesta del backend:', data);
       //console.log('Datos enviados al backend:', values);  // Verificar datos enviados
 
       // Aquí puedes manejar la respuesta del backend según tu lógica
+      if (data.message === 'Login exitoso') {
+        cookies.set('usuario', values.usuario, { path: '/' }); // Guardar nombre de usuario en cookie
+        cookies.set('pk_usuario', data.pk_usuario, { path: '/' });
+        cookies.set('tipo', data.pk_usuario, { path: '/' });
+
+        // Redireccionar según el tipo de usuario
+        if (data.tipo === 2) {
+          navigate('/administrador');
+        } else {
+          navigate('/index'); // Redirige a la página de inicio después del login exitoso
+        }
         //history.push('/index.php'); // Redirige a la página de index después del login exitoso
       } else {
-        message.error("Credenciales inválidas");
+        message.error('Credenciales inválidas');
       }
     } catch (error) {
-      console.error("Error al procesar la solicitud:", error);
-      message.error("Credenciales incorrectas");
-      console.log("Datos enviados al backend1:", values);
+      console.error('Error al procesar la solicitud:', error);
+      message.error('Credenciales incorrectas');
+      console.log('Datos enviados al backend1:', values); 
     }
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "95vh",
-        padding: "0 20px",
-      }}
-    >
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '95vh', padding: '0 20px' }}>
       {/* Estilos personalizados CSS */}
       <style jsx>{`
       .form-container {
@@ -122,53 +126,55 @@ function Login() {
         }
       `}</style>
       <div className="form-container">
-        <Form
-          {...formItemLayout}
-          form={form}
-          name="basic"
-          style={{ width: "100%", maxWidth: "400px", minWidth: "300px" }}
-          initialValues={{ remember: true }}
-          autoComplete="off"
-          onFinish={onFinish} // Llama a la función onFinish cuando se envía el formulario
+      <Form
+        {...formItemLayout}
+        form={form}
+        name="basic"
+        style={{ width: '100%', maxWidth: '400px', minWidth: '300px' }}
+        initialValues={{ remember: true }}
+        autoComplete="off"
+        onFinish={onFinish} // Llama a la función onFinish cuando se envía el formulario
+      >
+        <Form.Item
+          label="Usuario"
+          name="usuario"
+          rules={[
+            {
+              required: true,
+              message: 'Por favor ingrese el usuario',
+              
+            },
+          ]}
         >
-          <Form.Item
-            label="Usuario"
-            name="usuario"
-            rules={[
-              {
-                required: true,
-                message: "Por favor ingrese el usuario",
-              },
-            ]}
-          >
-            <Input placeholder="Ingresa el usuario por favor." />
-          </Form.Item>
+          <Input 
+          placeholder="Ingresa el usuario por favor."
+          />
+        </Form.Item>
 
-          <Form.Item
-            label="Contraseña"
-            name="pass"
-            rules={[
-              {
-                required: true,
-                message: "Por favor ingrese la contraseña",
-              },
-            ]}
-          >
-            <Input.Password placeholder="Ingresa la contraseña por favor." />
-          </Form.Item>
+        <Form.Item
+          label="Contraseña"
+          name="pass"
+          rules={[
+          {
+            required: true,
+            message: 'Por favor ingrese la contraseña'
+          },
+        ]}
+        >
+          <Input.Password 
+          placeholder="Ingresa la contraseña por favor."
+          />
+        </Form.Item>
 
-          <Form.Item {...tailFormItemLayout}>
-            <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
-              Aceptar
-            </Button>
-          </Form.Item>
-          <p>
-            ¿No tienes una cuenta?{" "}
-            <a href="/registro">
-              <b>registrate aquí</b>
-            </a>
-          </p>
-        </Form>
+        <Form.Item
+          {...tailFormItemLayout}
+        >
+          <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+            Aceptar
+          </Button>
+        </Form.Item>
+        <p>¿No tienes una cuenta? <a href="/registro"><b>registrate aquí</b></a></p>
+      </Form>
       </div>
     </div>
   );
