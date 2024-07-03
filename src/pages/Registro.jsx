@@ -35,35 +35,42 @@ function Registro() {
 
 
   const onFinish = async (values) => {
+    //console.log('Datos enviados al backend:', values);  // Verificar datos enviados
+
     try {
+      // Envía los datos del formulario al backend
       const response = await fetch('http://localhost:8000/registro', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+       
         body: JSON.stringify(values),
       });
-  
+
+      if (!response.ok) {
+        throw new Error('Error en la solicitud');
+      }
+      //console.log('Datos enviados al backend:', values);  // Verificar datos enviados
+
       const data = await response.json();
-  
-      if (response.ok) {
-        message.success('Registro exitoso');
-        navigate('/index');
+      console.log('Respuesta del backend:', data);
+      //console.log('Datos enviados al backend:', values);  // Verificar datos enviados
+
+      // Aquí puedes manejar la respuesta del backend según tu lógica
+      if (data.message === 'Registro exitoso') {
+        cookies.set('usuario', values.usuario, { path: '/' }); // Guardar nombre de usuario en cookie
+
+        //message.error('Correcto');
+        navigate('/index'); // Redirige a la página de inicio después del registro exitoso
+
+        //history.push('/index.php'); // Redirige a la página de index después del registro exitoso
       } else {
-        if (response.status === 409) {
-          message.error('El usuario ya existe');
-        } else if (response.status === 400) {
-          message.error('Datos incompletos');
-        } else {
-          message.error('Algo salió mal, intente de nuevo');
-        }
+        message.error('Credenciales inválidas');
       }
     } catch (error) {
       console.error('Error al procesar la solicitud:', error);
-      message.error('Error de red, intente de nuevo');
+      message.error('Credenciales incorrectas');
+      console.log('Datos enviados al backend1:', values); 
     }
   };
-  
 
 
 
