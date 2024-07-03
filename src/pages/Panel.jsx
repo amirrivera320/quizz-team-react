@@ -1,12 +1,14 @@
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from '@ant-design/icons';
 import { Breadcrumb, Layout, Menu, theme, Row, Col } from 'antd';
 import { Link, useNavigate, useNavigation } from 'react-router-dom';
-import React, { useEffect  } from 'react';
+import React, { useEffect, useState  } from 'react';
 import Cookies from 'universal-cookie';
 
 // Este es el archivo del panel
 
 const { Header, Content, Sider } = Layout;
+const { SubMenu } = Menu;
+
 const items1 = ['1', '2', '3'].map((key) => ({
   key,
   label: `nav ${key}`,
@@ -27,7 +29,9 @@ const rootSubmenuKeys = ['sub0', 'sub1', 'sub2', 'sub3', 'sub4'];
 const Panel = ({ componente }) => {
 const cookies = new Cookies();
 const usuario = cookies.get('usuario');
+const tipo = cookies.get('tipo');
 const navigate = useNavigate();
+const [logoutModal, setLogoutModal] = useState(false);
 
 
 console.log('usuario:', usuario); // Asegúrate de incluir `usuario` aquí para mostrar su valor
@@ -38,42 +42,67 @@ console.log('usuario:', usuario); // Asegúrate de incluir `usuario` aquí para 
   } = theme.useToken();
 
 
-
+  useEffect(() => {
+    // Verificar si hay usuario autenticado
+    if (!usuario) {
+      // Si no hay usuario, redirigir al login
+      navigate('/');
+    }
+  }, [usuario, navigate]);
+  
+  // Si no hay usuario, no renderizamos el componente
+  if (!usuario) {
+    return null;
+  }
 
 
 
 // Cerrar sesión
 
-const handleLogout = () => {
-  cookies.remove('usuario'); // Eliminar la cookie al cerrar sesión
+const handleLogoutOk = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ usuario, tipo }),
+    });
 
-    
-    navigate('/');
-}
+    const data = await response.json();
+    if (response.ok) {
+      cookies.remove('usuario'); // Eliminar la cookie al cerrar sesión
+      cookies.remove('tipo'); // Eliminar la cookie al cerrar sesión
+      cookies.remove('pk_usuario'); // Eliminar la cookie al cerrar sesión
+      setLogoutModal(false);
 
-
-useEffect(() => {
-  // Verificar si hay usuario autenticado
-  if (!usuario) {
-    // Si no hay usuario, redirigir al login
-    navigate('/');
+      navigate('/');
+    } else {
+      console.error('Error al cerrar sesión:', data.error);
+    }
+  } catch (error) {
+    console.error('Error al procesar la solicitud:', error);
   }
-}, [usuario, navigate]);
-
-// Si no hay usuario, no renderizamos el componente
-if (!usuario) {
-  return null;
 }
 
 
 
+
+// Función para mostrar el modal de cerrar sesión
+const mostrarLogoutModal = () => {
+  setLogoutModal(true);
+};
+// Función para manejar la cancelación del modal de cerrar sesión
+const handleLogoutCancel = () => {
+  setLogoutModal(false);
+};
   return (
 
     <Layout className="header">
 
       <div>
         <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: '100px', background: '#fff', position: 'relative' }}>
-          <img src="img/logo-quiz-soft.gif" alt="Logo" style={{ width: '100px', height: '100px' }} />
+          <img src="../img/logo-quiz-soft.gif" alt="Logo" style={{ width: '100px', height: '100px' }} />
           <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
             <div style={{ background: '#FDCB4F', width: '200px', height: '100px', borderBottomLeftRadius: '25px', borderBottomRightRadius: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg viewBox="0 0 100 100">
@@ -87,22 +116,17 @@ if (!usuario) {
 
       <Layout>
         <Sider width={200} style={{ background: colorBgContainer }}>
-          <Menu
-            mode="inline"
-            style={{
-              height: '100%',
-              borderRight: 0,
-            }}
-          >
-            <>
-              <Menu.Item onClick={() => navigate('/index')}>Página principal</Menu.Item>
-              <Menu.Item onClick={() => navigate('/ejemplo')}>Ejemplo</Menu.Item>
-              <Menu.Item >Bienvenido: {usuario} </Menu.Item>
-              <Menu.Item onClick={handleLogout}>Cerrar sesión</Menu.Item>
-
-            </>
-
-
+        <Menu mode="inline" style={{ height: '100%', borderRight: 0 }}>
+            <Menu.Item onClick={() => navigate('/administrador')}>Página administrador</Menu.Item>
+            <SubMenu key="sub1" title="Categorías">
+              <Menu.Item onClick={() => navigate('/administrador/categoria')}>Agregar categoría</Menu.Item>
+              <Menu.Item onClick={() => navigate('/administrador/lista_categoria')}>Lista de categorías</Menu.Item>
+            </SubMenu>
+            <SubMenu key="sub2" title="Preguntas">
+            <Menu.Item onClick={() => navigate('/administrador/formulario_pregunta')}>Agregar preguntas</Menu.Item>
+            <Menu.Item onClick={() => navigate('/administrador/categorias_preguntas')}>Preguntas</Menu.Item>
+            </SubMenu>
+            <Menu.Item onClick={mostrarLogoutModal}>Cerrar sesión</Menu.Item>
           </Menu>
         </Sider>
         <Layout style={{ padding: '0 10px 24px' }}>
@@ -120,7 +144,24 @@ if (!usuario) {
           </Content>
         </Layout>
       </Layout>
-
+      <Modal
+        title="Confirmación"
+        visible={logoutModal}
+        onOk={handleLogoutOk}
+        onCancel={handleLogoutCancel}
+        okText="Sí"
+        cancelText="No"
+        footer={[
+          <Button key="ok" type="primary" onClick={handleLogoutOk}>
+            Sí
+          </Button>,
+          <Button key="cancel" onClick={handleLogoutCancel}>
+            No
+          </Button>,
+        ]}
+      >
+        <p>¿Estás seguro de salir?</p>
+      </Modal>
     </Layout>
   );
 };

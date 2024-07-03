@@ -39,12 +39,6 @@ function Login() {
       //console.log('Datos enviados al backend:', values);  // Verificar datos enviados
 
       // Aquí puedes manejar la respuesta del backend según tu lógica
-      if (data.message === "Login exitoso") {
-        cookies.set("usuario", values.usuario, { path: "/" }); // Guardar nombre de usuario en cookie
-
-        //message.error('Correcto');
-        navigate("/index"); // Redirige a la página de inicio después del login exitoso
-
         //history.push('/index.php'); // Redirige a la página de index después del login exitoso
       } else {
         message.error("Credenciales inválidas");

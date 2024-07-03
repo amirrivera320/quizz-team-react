@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "antd": "^5.18.0",
+    "flowbite": "^2.3.0",
+    "flowbite-react": "^0.10.0",
     "react-router-dom": "^6.23.1",
     "styled-components": "^6.1.11",
     "universal-cookie": "^7.1.4"
