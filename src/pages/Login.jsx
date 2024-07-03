@@ -42,10 +42,15 @@ function Login() {
       // Aquí puedes manejar la respuesta del backend según tu lógica
       if (data.message === 'Login exitoso') {
         cookies.set('usuario', values.usuario, { path: '/' }); // Guardar nombre de usuario en cookie
+        cookies.set('pk_usuario', data.pk_usuario, { path: '/' });
+        cookies.set('tipo', data.pk_usuario, { path: '/' });
 
-        //message.error('Correcto');
-        navigate('/index'); // Redirige a la página de inicio después del login exitoso
-
+        // Redireccionar según el tipo de usuario
+        if (data.tipo === 2) {
+          navigate('/administrador');
+        } else {
+          navigate('/index'); // Redirige a la página de inicio después del login exitoso
+        }
         //history.push('/index.php'); // Redirige a la página de index después del login exitoso
       } else {
         message.error('Credenciales inválidas');

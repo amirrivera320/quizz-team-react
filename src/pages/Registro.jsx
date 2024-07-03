@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Button, Form, Input, Typography } from 'antd';
+import { Button, Form, Input, Typography, message } from 'antd';
 import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
@@ -15,20 +16,56 @@ const tailFormItemLayout = {
 
 function Registro() {
   const [form] = Form.useForm();
-  const [integrantes, setIntegrantes] = useState([{ id: 1, nombre: '' }]);
+  const navigate = useNavigate();
 
-  const agregarIntegrante = () => {
-    if (integrantes.length < 3) {
-      const newId = integrantes.length > 0 ? integrantes[integrantes.length - 1].id + 1 : 1;
-      setIntegrantes([...integrantes, { id: newId, nombre: '' }]);
+  // const [integrantes, setIntegrantes] = useState([{ id: 1, nombre: '' }]);
+
+  // const agregarIntegrante = () => {
+  //   if (integrantes.length < 3) {
+  //     const newId = integrantes.length > 0 ? integrantes[integrantes.length - 1].id + 1 : 1;
+  //     setIntegrantes([...integrantes, { id: newId, nombre: '' }]);
+  //   }
+  // };
+
+  // const eliminarIntegrante = (id) => {
+  //   if (integrantes.length > 1) {
+  //     setIntegrantes(integrantes.filter(integrante => integrante.id !== id));
+  //   }
+  // };
+
+
+  const onFinish = async (values) => {
+    try {
+      const response = await fetch('http://localhost:8000/registro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        message.success('Registro exitoso');
+        navigate('/index');
+      } else {
+        if (response.status === 409) {
+          message.error('El usuario ya existe');
+        } else if (response.status === 400) {
+          message.error('Datos incompletos');
+        } else {
+          message.error('Algo salió mal, intente de nuevo');
+        }
+      }
+    } catch (error) {
+      console.error('Error al procesar la solicitud:', error);
+      message.error('Error de red, intente de nuevo');
     }
   };
+  
 
-  const eliminarIntegrante = (id) => {
-    if (integrantes.length > 1) {
-      setIntegrantes(integrantes.filter(integrante => integrante.id !== id));
-    }
-  };
+
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -96,27 +133,49 @@ function Registro() {
         }
       `}</style>
       <div className="form-container">
-        <Title level={3} style={{ textAlign: 'center' }}>Registro del Equipo</Title>
+        <Title level={3} style={{ textAlign: 'center' }}>Registro de usuario</Title>
         <Form
           {...formItemLayout}
           form={form}
           name="basic"
           autoComplete="off"
+        onFinish={onFinish} // Llama a la función onFinish cuando se envía el formulario
         >
           <Form.Item
-            label="Nombre del equipo"
-            name="nombre_equipo"
-            rules={[
-              {
-                required: true,
-                message: 'Por favor ingrese el nombre del equipo',
-              },
-            ]}
-          >
-            <Input placeholder="Ingresa el nombre del equipo por favor." />
-          </Form.Item>
+          label="Usuario"
+          name="usuario"
+          rules={[
+            {
+              required: true,
+              message: 'Por favor ingrese el usuario',
+              
+            },
+          ]}
+        >
+          <Input 
+          placeholder="Ingresa el usuario por favor."
+          />
+        </Form.Item>
 
-          {integrantes.map((integrante, index) => (
+
+        <Form.Item
+          label="Contraseña"
+          name="pass"
+          rules={[
+          {
+            required: true,
+            message: 'Por favor ingrese la contraseña'
+          },
+        ]}
+        >
+          <Input.Password 
+          placeholder="Ingresa la contraseña por favor."
+          />
+        </Form.Item>
+
+
+
+          {/* {integrantes.map((integrante, index) => (
             <Form.Item
               key={integrante.id}
               label={index === 0 ? 'Nombre del integrante' : ''}
@@ -153,13 +212,14 @@ function Registro() {
                 )}
               </div>
             </Form.Item>
-          ))}
+          ))} */}
 
           <Form.Item {...tailFormItemLayout}>
             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
               Registrarse
             </Button>
           </Form.Item>
+        <p>¿Ya tienes una cuenta? <a href="/"><b>inicia sesión aquí</b></a></p>
         </Form>
       </div>
     </div>
